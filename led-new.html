@@ -1,0 +1,778 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>442 QR Studio</title>
+
+    <!-- Pro QR styling engine -->
+    <script src="https://unpkg.com/qr-code-styling@1.6.0/lib/qr-code-styling.js"></script>
+
+    <style>
+      :root {
+        --bg: #f4f4f5;
+        --card: #ffffff;
+        --text: #111827;
+        --muted: #6b7280;
+        --border: rgba(17, 24, 39, 0.12);
+        --shadow: 0 12px 40px rgba(0, 0, 0, 0.1);
+        --shadow2: 0 18px 55px rgba(0, 0, 0, 0.14);
+        --btn: #000;
+        --btnHover: #222;
+        --danger: #b91c1c;
+        --dangerBg: rgba(185, 28, 28, 0.08);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: var(--bg);
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        color: var(--text);
+      }
+
+      .app {
+        display: grid;
+        grid-template-columns: 360px 1fr;
+        gap: 18px;
+        padding: 18px;
+        min-height: 100vh;
+      }
+
+      .panel {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        box-shadow: var(--shadow);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+      }
+
+      .panel header {
+        padding: 14px 14px 10px;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .title {
+        font-weight: 800;
+        font-size: 14px;
+        letter-spacing: 0.2px;
+      }
+
+      .subtitle {
+        margin-top: 4px;
+        font-size: 12px;
+        color: var(--muted);
+        line-height: 1.3;
+      }
+
+      .scroll {
+        padding: 14px;
+        overflow: auto;
+        min-height: 0;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+
+      .row2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+
+      label {
+        display: block;
+        font-size: 12px;
+        font-weight: 700;
+        margin-bottom: 6px;
+      }
+
+      .hint {
+        margin-top: 6px;
+        font-size: 11px;
+        color: var(--muted);
+        line-height: 1.3;
+      }
+
+      input[type="text"],
+      input[type="number"],
+      select {
+        width: 100%;
+        padding: 9px 10px;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        outline: none;
+        font-size: 12px;
+        background: #fff;
+      }
+
+      input[type="color"] {
+        width: 100%;
+        height: 38px;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 3px;
+        background: #fff;
+      }
+
+      input[type="file"] {
+        width: 100%;
+        padding: 10px;
+        border-radius: 10px;
+        border: 1px dashed var(--border);
+        background: #fff;
+        font-size: 12px;
+      }
+
+      .toggle {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+      }
+
+      .toggle input {
+        width: 18px;
+        height: 18px;
+      }
+
+      .btns {
+        display: grid;
+        gap: 10px;
+        padding: 14px;
+        border-top: 1px solid var(--border);
+        background: rgba(0, 0, 0, 0.02);
+      }
+
+      button {
+        width: 100%;
+        padding: 12px 12px;
+        border: none;
+        border-radius: 12px;
+        background: var(--btn);
+        color: #fff;
+        font-weight: 800;
+        font-size: 13px;
+        cursor: pointer;
+        transition: 0.2s ease;
+      }
+
+      button:hover {
+        background: var(--btnHover);
+      }
+
+      .btnSecondary {
+        background: #fff;
+        color: #111;
+        border: 1px solid var(--border);
+      }
+      .btnSecondary:hover {
+        background: #fafafa;
+      }
+
+      .btnRow {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+
+      .preview {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        box-shadow: var(--shadow);
+        padding: 18px;
+        display: grid;
+        place-items: center;
+        min-height: 0;
+      }
+
+      .qrCard {
+        width: min(520px, 96%);
+        background: #fff;
+        border-radius: 22px;
+        box-shadow: var(--shadow2);
+        padding: 26px;
+        display: grid;
+        gap: 14px;
+        justify-items: center;
+      }
+
+      .qrBox {
+        width: 320px;
+        height: 320px;
+        border-radius: 18px;
+        border: 1px solid var(--border);
+        background: #fff;
+        display: grid;
+        place-items: center;
+        overflow: hidden;
+      }
+
+      /* Make sure the library output fits */
+      .qrBox > canvas,
+      .qrBox > svg {
+        width: 100% !important;
+        height: 100% !important;
+        display: block;
+      }
+
+      .status {
+        font-size: 12px;
+        color: var(--muted);
+      }
+
+      .errorBox {
+        display: none;
+        margin-top: 10px;
+        padding: 10px 12px;
+        border-radius: 12px;
+        background: var(--dangerBg);
+        border: 1px solid rgba(185, 28, 28, 0.25);
+        color: var(--danger);
+        font-size: 12px;
+        line-height: 1.35;
+        white-space: pre-wrap;
+      }
+
+      @media (max-width: 980px) {
+        .app {
+          grid-template-columns: 1fr;
+        }
+        .qrBox {
+          width: 300px;
+          height: 300px;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="app">
+      <!-- LEFT: Controls -->
+      <section class="panel">
+        <header>
+          <div class="title">QR Studio (Pro)</div>
+          <div class="subtitle">
+            Auto-updates as you edit. Upload a logo to avoid broken “442
+            logo.png” paths.
+          </div>
+          <div id="errorBox" class="errorBox"></div>
+        </header>
+
+        <div class="scroll">
+          <div class="grid">
+            <div>
+              <label>Data / URL</label>
+              <input
+                id="data"
+                type="text"
+                value="https://ar.442footballpark.com/"
+              />
+              <div class="hint">
+                Shorter URL = less dense QR = cleaner look.
+              </div>
+            </div>
+
+            <div class="row2">
+              <div>
+                <label>Render Size (px)</label>
+                <input
+                  id="renderSize"
+                  type="number"
+                  min="180"
+                  max="600"
+                  value="320"
+                />
+                <div class="hint">Preview box size.</div>
+              </div>
+              <div>
+                <label>Export Size (px)</label>
+                <input
+                  id="exportSize"
+                  type="number"
+                  min="256"
+                  max="4096"
+                  value="1200"
+                />
+                <div class="hint">PNG/SVG output size.</div>
+              </div>
+            </div>
+
+            <div class="row2">
+              <div>
+                <label>Margin (Quiet zone)</label>
+                <input id="margin" type="number" min="0" max="80" value="10" />
+                <div class="hint">Too small can break scanning.</div>
+              </div>
+              <div>
+                <label>Error correction</label>
+                <select id="ecc">
+                  <option value="L">L (7%)</option>
+                  <option value="M">M (15%)</option>
+                  <option value="Q">Q (25%)</option>
+                  <option value="H" selected>H (30%)</option>
+                </select>
+                <div class="hint">With logo: use Q/H.</div>
+              </div>
+            </div>
+
+            <div class="row2">
+              <div>
+                <label>Dark color</label>
+                <input id="dark" type="color" value="#000000" />
+              </div>
+              <div>
+                <label>Light color</label>
+                <input id="light" type="color" value="#ffffff" />
+              </div>
+            </div>
+
+            <div class="row2">
+              <div>
+                <label>Dots style</label>
+                <select id="dotsType">
+                  <option value="square">square (serious)</option>
+                  <option value="rounded" selected>rounded (modern)</option>
+                  <option value="extra-rounded">extra-rounded</option>
+                  <option value="dots">dots</option>
+                  <option value="classy">classy</option>
+                  <option value="classy-rounded">classy-rounded</option>
+                </select>
+              </div>
+              <div>
+                <label>Corner squares</label>
+                <select id="cornerSquareType">
+                  <option value="square">square</option>
+                  <option value="extra-rounded" selected>extra-rounded</option>
+                  <option value="dot">dot</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="row2">
+              <div>
+                <label>Corner dots</label>
+                <select id="cornerDotType">
+                  <option value="square">square</option>
+                  <option value="dot" selected>dot</option>
+                </select>
+              </div>
+              <div>
+                <label>Background (card)</label>
+                <select id="cardBg">
+                  <option value="#ffffff" selected>white</option>
+                  <option value="#0b0b0c">black</option>
+                  <option value="#f4f4f5">soft gray</option>
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label>Gradient</label>
+              <select id="gradType">
+                <option value="none" selected>
+                  None (recommended for reliability)
+                </option>
+                <option value="linear">Linear</option>
+                <option value="radial">Radial</option>
+              </select>
+            </div>
+
+            <div class="row2">
+              <div>
+                <label>Gradient rotation (0-360)</label>
+                <input id="gradRot" type="number" min="0" max="360" value="0" />
+              </div>
+              <div>
+                <label>Gradient end color</label>
+                <input id="gradEnd" type="color" value="#111111" />
+              </div>
+            </div>
+
+            <div>
+              <label>Logo (upload)</label>
+              <input id="logoFile" type="file" accept="image/*" />
+              <div class="hint">
+                If you don’t upload, it will generate QR without logo.
+              </div>
+            </div>
+
+            <div class="row2">
+              <div>
+                <label>Logo size (0.10 - 0.30)</label>
+                <input
+                  id="logoSize"
+                  type="number"
+                  step="0.01"
+                  min="0.1"
+                  max="0.3"
+                  value="0.22"
+                />
+              </div>
+              <div>
+                <label>Logo margin</label>
+                <input
+                  id="logoMargin"
+                  type="number"
+                  min="0"
+                  max="40"
+                  value="6"
+                />
+              </div>
+            </div>
+
+            <div class="row2">
+              <div>
+                <label>Hide dots under logo</label>
+                <select id="hideDots">
+                  <option value="true" selected>true</option>
+                  <option value="false">false</option>
+                </select>
+              </div>
+              <div>
+                <label>Force version (1-40, 0 auto)</label>
+                <input id="version" type="number" min="0" max="40" value="0" />
+              </div>
+            </div>
+
+            <div class="btnRow">
+              <button class="btnSecondary" id="presetMinimal">
+                Preset: Minimal
+              </button>
+              <button class="btnSecondary" id="presetBold">
+                Preset: Bold Sport
+              </button>
+            </div>
+
+            <button class="btnSecondary" id="resetAll">
+              Reset to defaults
+            </button>
+          </div>
+        </div>
+
+        <div class="btns">
+          <button id="forceUpdate">Update Now</button>
+          <div class="btnRow">
+            <button id="dlPng">Download PNG</button>
+            <button id="dlSvg">Download SVG</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- RIGHT: Preview -->
+      <section class="preview">
+        <div class="qrCard" id="qrCard">
+          <div class="qrBox" id="qrBox"></div>
+          <div class="status" id="status">Ready.</div>
+        </div>
+      </section>
+    </div>
+
+    <script>
+      // ---------- Helpers ----------
+      const $ = (id) => document.getElementById(id);
+
+      function showError(msg) {
+        const box = $("errorBox");
+        if (!msg) {
+          box.style.display = "none";
+          box.textContent = "";
+          return;
+        }
+        box.style.display = "block";
+        box.textContent = msg;
+      }
+
+      function setStatus(msg) {
+        $("status").textContent = msg;
+      }
+
+      function clamp(n, a, b) {
+        return Math.max(a, Math.min(b, n));
+      }
+
+      // Debounce to avoid regenerating too often while typing
+      function debounce(fn, ms) {
+        let t = null;
+        return (...args) => {
+          clearTimeout(t);
+          t = setTimeout(() => fn(...args), ms);
+        };
+      }
+
+      // Handle logo upload (works everywhere)
+      let logoDataUrl = null;
+      $("logoFile").addEventListener("change", () => {
+        const f = $("logoFile").files && $("logoFile").files[0];
+        if (!f) {
+          logoDataUrl = null;
+          safeRender();
+          return;
+        }
+        const reader = new FileReader();
+        reader.onload = () => {
+          logoDataUrl = reader.result;
+          safeRender();
+        };
+        reader.onerror = () => {
+          logoDataUrl = null;
+          showError("Logo file failed to read. Try another image.");
+          safeRender();
+        };
+        reader.readAsDataURL(f);
+      });
+
+      // ---------- QR Instance ----------
+      let qr = null;
+
+      function buildOptions() {
+        const renderSize = clamp(
+          parseInt($("renderSize").value || "320", 10),
+          180,
+          600,
+        );
+        const exportSize = clamp(
+          parseInt($("exportSize").value || "1200", 10),
+          256,
+          4096,
+        );
+
+        const margin = clamp(parseInt($("margin").value || "10", 10), 0, 80);
+        const ecc = $("ecc").value;
+
+        const dark = $("dark").value;
+        const light = $("light").value;
+
+        const dotsType = $("dotsType").value;
+        const cornerSquareType = $("cornerSquareType").value;
+        const cornerDotType = $("cornerDotType").value;
+
+        const gradType = $("gradType").value;
+        const gradRot = clamp(parseInt($("gradRot").value || "0", 10), 0, 360);
+        const gradEnd = $("gradEnd").value;
+
+        const hideDots = $("hideDots").value === "true";
+        const logoSize = clamp(
+          parseFloat($("logoSize").value || "0.22"),
+          0.1,
+          0.3,
+        );
+        const logoMargin = clamp(
+          parseInt($("logoMargin").value || "6", 10),
+          0,
+          40,
+        );
+
+        const version = clamp(parseInt($("version").value || "0", 10), 0, 40);
+        const data = ($("data").value || "").trim();
+
+        // Make preview box match render size
+        $("qrBox").style.width = renderSize + "px";
+        $("qrBox").style.height = renderSize + "px";
+
+        // Card background
+        $("qrCard").style.background = $("cardBg").value;
+
+        // Dots options: color or gradient
+        let dotsOptions = { type: dotsType, color: dark };
+        if (gradType !== "none") {
+          dotsOptions = {
+            type: dotsType,
+            gradient: {
+              type: gradType,
+              rotation: (gradRot * Math.PI) / 180,
+              colorStops: [
+                { offset: 0, color: dark },
+                { offset: 1, color: gradEnd },
+              ],
+            },
+          };
+        }
+
+        const qrOptions = {
+          errorCorrectionLevel: ecc,
+          // If version=0 => let library auto-pick
+          ...(version === 0 ? {} : { typeNumber: version }),
+        };
+
+        return {
+          exportSize,
+          data,
+          margin,
+          qrOptions,
+          dotsOptions,
+          cornersSquareOptions: { type: cornerSquareType, color: dark },
+          cornersDotOptions: { type: cornerDotType, color: dark },
+          backgroundOptions: { color: light },
+          image: logoDataUrl || undefined,
+          imageOptions: {
+            hideBackgroundDots: hideDots,
+            imageSize: logoSize,
+            margin: logoMargin,
+          },
+        };
+      }
+
+      function render() {
+        showError("");
+        const opts = buildOptions();
+
+        if (!opts.data) {
+          throw new Error("Data/URL is empty. Put a URL or text.");
+        }
+
+        // Clear container
+        const box = $("qrBox");
+        box.innerHTML = "";
+
+        // Create new instance every time (simple + reliable)
+        qr = new QRCodeStyling({
+          width: opts.exportSize,
+          height: opts.exportSize,
+          data: opts.data,
+          margin: opts.margin,
+          qrOptions: opts.qrOptions,
+          dotsOptions: opts.dotsOptions,
+          cornersSquareOptions: opts.cornersSquareOptions,
+          cornersDotOptions: opts.cornersDotOptions,
+          backgroundOptions: opts.backgroundOptions,
+          image: opts.image,
+          imageOptions: opts.imageOptions,
+        });
+
+        qr.append(box);
+
+        setStatus(
+          `Rendered • ECC ${opts.qrOptions.errorCorrectionLevel} • Margin ${opts.margin} • Export ${opts.exportSize}px` +
+            (opts.image ? " • Logo ON" : " • Logo OFF"),
+        );
+      }
+
+      function safeRender() {
+        try {
+          setStatus("Rendering...");
+          render();
+        } catch (e) {
+          showError(String(e && e.message ? e.message : e));
+          setStatus("Render failed. See error above.");
+        }
+      }
+
+      const autoRender = debounce(safeRender, 180);
+
+      // Auto-update on changes
+      const inputs = [
+        "data",
+        "renderSize",
+        "exportSize",
+        "margin",
+        "ecc",
+        "dotsType",
+        "cornerSquareType",
+        "cornerDotType",
+        "dark",
+        "light",
+        "cardBg",
+        "gradType",
+        "gradRot",
+        "gradEnd",
+        "logoSize",
+        "logoMargin",
+        "hideDots",
+        "version",
+      ];
+
+      inputs.forEach((id) => {
+        $(id).addEventListener("input", autoRender);
+        $(id).addEventListener("change", autoRender);
+      });
+
+      // Buttons
+      $("forceUpdate").addEventListener("click", safeRender);
+
+      $("dlPng").addEventListener("click", () => {
+        try {
+          if (!qr) throw new Error("QR not ready yet.");
+          qr.download({ name: "442-QR", extension: "png" });
+        } catch (e) {
+          showError(String(e && e.message ? e.message : e));
+        }
+      });
+
+      $("dlSvg").addEventListener("click", () => {
+        try {
+          if (!qr) throw new Error("QR not ready yet.");
+          qr.download({ name: "442-QR", extension: "svg" });
+        } catch (e) {
+          showError(String(e && e.message ? e.message : e));
+        }
+      });
+
+      // Presets
+      $("presetMinimal").addEventListener("click", () => {
+        $("dotsType").value = "square";
+        $("cornerSquareType").value = "square";
+        $("cornerDotType").value = "square";
+        $("gradType").value = "none";
+        $("margin").value = "12";
+        $("ecc").value = "H";
+        $("logoSize").value = "0.18";
+        $("logoMargin").value = "8";
+        $("hideDots").value = "true";
+        autoRender();
+      });
+
+      $("presetBold").addEventListener("click", () => {
+        $("dotsType").value = "rounded";
+        $("cornerSquareType").value = "extra-rounded";
+        $("cornerDotType").value = "dot";
+        $("gradType").value = "none";
+        $("margin").value = "8";
+        $("ecc").value = "H";
+        $("logoSize").value = "0.22";
+        $("logoMargin").value = "6";
+        $("hideDots").value = "true";
+        autoRender();
+      });
+
+      $("resetAll").addEventListener("click", () => {
+        $("data").value = "https://ar.442footballpark.com/";
+        $("renderSize").value = "320";
+        $("exportSize").value = "1200";
+        $("margin").value = "10";
+        $("ecc").value = "H";
+        $("dotsType").value = "rounded";
+        $("cornerSquareType").value = "extra-rounded";
+        $("cornerDotType").value = "dot";
+        $("dark").value = "#000000";
+        $("light").value = "#ffffff";
+        $("cardBg").value = "#ffffff";
+        $("gradType").value = "none";
+        $("gradRot").value = "0";
+        $("gradEnd").value = "#111111";
+        $("logoSize").value = "0.22";
+        $("logoMargin").value = "6";
+        $("hideDots").value = "true";
+        $("version").value = "0";
+
+        // reset logo file
+        $("logoFile").value = "";
+        logoDataUrl = null;
+
+        autoRender();
+      });
+
+      // First render
+      safeRender();
+    </script>
+  </body>
+</html>
